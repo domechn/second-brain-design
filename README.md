@@ -16,7 +16,7 @@ All your tasks, finances, portfolios, ledgers, subscriptions, and knowledge — 
 
 ## What is Second Brain?
 
-Second Brain is a full-stack web application for personal life management. It covers **task management**, **finance/earn tracking**, **portfolio holdings**, **ledger bookkeeping**, **subscription tracking**, and **knowledge management** — all in a single, self-hosted app.
+Second Brain is a full-stack web application for personal life management. It covers **task management**, **finance/earn tracking**, **portfolio holdings**, **ledger bookkeeping**, **subscription tracking**, **knowledge management**, and an **LLM Wiki** for AI-curated research — all in a single, self-hosted app.
 
 What makes it different? **There is no database.** Every piece of data is stored as human-readable plain text — YAML, Markdown with YAML frontmatter, and CSV — right in the repository under `memory/`. You can read your data with `cat`, edit it with `vim`, diff it with `git`, and back it up by pushing to a remote. Your data is never locked in an opaque system.
 
@@ -35,6 +35,7 @@ Multi-workspace task system with three powerful views:
 - **List View** — Sortable rows with full metadata; keyboard navigation support
 
 **Additional capabilities:**
+
 - Advanced filtering: full-text search, stage filter, date range, multi-tag filter, archive toggle — all synced to URL params for bookmarking
 - Configurable workspaces with custom kanban stages, projects, priorities, and tags
 - Auto-emoji title decoration on new tasks
@@ -102,6 +103,18 @@ A personal wiki with bidirectional linking:
 - Note insights: auto-extracted headings (with anchor IDs), linked notes, and referenced assets
 - Asset management: images and files stored alongside notes
 
+### 🧠 LLM Wiki
+
+A separate AI librarian workflow for durable research and synthesis:
+
+- Workspace-scoped `raw/` → `wiki/` → `outputs/` flow with `raw/inbox`, `raw/archive`, `wiki/sources`, `wiki/entities`, `wiki/concepts`, and `wiki/synthesis`
+- New LLM Wiki workspaces inherit their baseline `CLAUDE.md` governance rules from `memory/llm-wiki/workspaces/ai-workflows/CLAUDE.md`
+- Durable pages connect through `related` and `source_refs` frontmatter; when body text needs navigation, use standard relative Markdown file links like `[Topic](../concepts/topic.md)` instead of `[[Topic]]`
+- Saved outputs for temporary answers and reports that should not enter the long-term wiki
+- Dedicated UI separate from the knowledge note system: workspace list, workspace dashboard with raw / wiki / outputs panels, and a durable page detail view
+- Each workspace maintains an auto-updated `wiki/index.md` (navigation) and `wiki/log.md` (workflow operation log)
+- Companion `scripts/llmwiki_workflow.mjs` runner + `.claude/skills/llmwiki-workflow` skill expose `/llmwiki-ingest`, `/llmwiki-query`, and `/llmwiki-lint` slash commands for Claude Code
+
 ### 🏠 Home Dashboard
 
 A personal command center:
@@ -134,13 +147,14 @@ All data is stored as **plain text files** — YAML for metadata, Markdown with 
 
 Second Brain comes with **pre-built AI skills** designed for Claude Code, Codex, and other AI coding agents:
 
-| Skill | What It Does |
-|-------|-------------|
-| **Task Creation** | Describe a task in natural language → auto-classified stage, priority, projects, and tags |
-| **Weekly Summary** | Generate a summary of the 3 most impactful completed tasks in any date range |
-| **Finance Yield** | Calculate current, month-end, or maturity returns for investment positions |
-| **Ledger Import** | Automated Feidee export → XLSX parse → CSV import with category completion |
-| **Workspace Creation** | Create a new task workspace from a description with all required YAML files |
+| Skill                  | What It Does                                                                                |
+| ---------------------- | ------------------------------------------------------------------------------------------- |
+| **Task Creation**      | Describe a task in natural language → auto-classified stage, priority, projects, and tags   |
+| **Weekly Summary**     | Generate a summary of the 3 most impactful completed tasks in any date range                |
+| **Finance Yield**      | Calculate current, month-end, or maturity returns for investment positions                  |
+| **Ledger Import**      | Automated Feidee export → XLSX parse → CSV import with category completion                  |
+| **Workspace Creation** | Create a new task workspace from a description with all required YAML files                 |
+| **LLM Wiki Workflow**  | Run the AI librarian workflow across raw sources, durable wiki pages, and temporary outputs |
 
 Because the data layer is plain text, AI agents read and write the same files as the web app. No API wrappers, no ORM mappings, no intermediate layers. The AI operates directly on your data with full context.
 
@@ -149,11 +163,13 @@ Because the data layer is plain text, AI agents read and write the same files as
 This is the killer advantage. Want a new feature? **Just describe it in natural language and let an AI agent implement it.**
 
 The architecture is deliberately simple:
+
 - **React Router loaders/actions** for request handling
 - **File-system reads/writes** for persistence
 - **No complex abstractions** — straightforward TypeScript you (or an AI) can read in minutes
 
 The flat, readable codebase makes AI-assisted development trivially easy. An AI agent can:
+
 - Understand the full data model by reading a few YAML/Markdown files
 - Add new routes, components, or data modules following established patterns
 - Modify any feature with full confidence because there's no hidden state
@@ -209,17 +225,22 @@ bun run typecheck       # TypeScript type checking
 ./sync.sh "message"     # Compress images + git commit + push
 ```
 
+## Documentation Maintenance
+
+When a feature, workflow, or data contract changes, update the relevant `README.md` files and any affected directory-level `CLAUDE.md` guidance in the same change so the docs stay aligned with the code.
+
 ## AI Skills
 
 Second Brain ships with pre-built skills for AI coding agents (Claude Code, Codex, etc.). These skills are defined in `.claude/skills/` and operate directly on the file system.
 
-| Skill | Description | Example |
-|-------|-------------|---------|
-| **task-management-create** | Create a task from natural language with auto-classification of stage, priority, projects, and tags | *"Track the Twitter API migration, high priority, due Friday"* |
-| **weekly-summary** | Generate a weekly summary of the top 3 completed tasks with impact analysis | *"Summarize last week's work"* |
-| **finance-yield** | Calculate returns for finance earn positions (current / month-end / maturity) | *"How much has the USDT position earned?"* |
-| **ledger-import** | Import transactions from Feidee (随手记) with automatic category and subcategory mapping | Automates browser export → parse → import |
-| **create-workspace** | Create a new task workspace with kanban stages, projects, tags, and register in global index | *"Create a workspace for my side project"* |
+| Skill                      | Description                                                                                         | Example                                                        |
+| -------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **task-management-create** | Create a task from natural language with auto-classification of stage, priority, projects, and tags | _"Track the Twitter API migration, high priority, due Friday"_ |
+| **weekly-summary**         | Generate a weekly summary of the top 3 completed tasks with impact analysis                         | _"Summarize last week's work"_                                 |
+| **finance-yield**          | Calculate returns for finance earn positions (current / month-end / maturity)                       | _"How much has the USDT position earned?"_                     |
+| **ledger-import**          | Import transactions from Feidee (随手记) with automatic category and subcategory mapping            | Automates browser export → parse → import                      |
+| **create-workspace**       | Create a new task workspace with kanban stages, projects, tags, and register in global index        | _"Create a workspace for my side project"_                     |
+| **llmwiki-workflow**       | Run the AI librarian workflow for LLM Wiki workspaces across raw/, wiki/, and outputs/              | _"Ingest the pending raw sources in workspace default"_        |
 
 ### How It Works
 
@@ -227,16 +248,16 @@ The AI agent reads the skill definition (which describes the data format, file p
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Framework** | React 19 + React Router 7 (SSR) |
-| **Build** | Vite 7 + TypeScript 5.9 (strict) |
-| **Styling** | Tailwind CSS 4 + shadcn/ui (Radix primitives) |
-| **Editor** | CodeMirror 6 (Markdown) + Mermaid 11 (diagrams) |
-| **Charts** | Recharts 3.7 |
-| **Data** | js-yaml + gray-matter (YAML/frontmatter) + PapaParse (CSV) |
-| **Icons** | Lucide React |
-| **Runtime** | Bun (dev + package manager) / Node.js (production) |
+| Layer         | Technology                                                 |
+| ------------- | ---------------------------------------------------------- |
+| **Framework** | React 19 + React Router 7 (SSR)                            |
+| **Build**     | Vite 7 + TypeScript 5.9 (strict)                           |
+| **Styling**   | Tailwind CSS 4 + shadcn/ui (Radix primitives)              |
+| **Editor**    | CodeMirror 6 (Markdown) + Mermaid 11 (diagrams)            |
+| **Charts**    | Recharts 3.7                                               |
+| **Data**      | js-yaml + gray-matter (YAML/frontmatter) + PapaParse (CSV) |
+| **Icons**     | Lucide React                                               |
+| **Runtime**   | Bun (dev + package manager) / Node.js (production)         |
 
 ## Data Architecture
 
@@ -276,6 +297,17 @@ memory/
 │       ├── notes/**/*.md                          # Markdown notes with frontmatter
 │       └── assets/**                              # Images and files
 │
+├── llm-wiki/
+│   └── workspaces/<id>/
+│       ├── metadata.yaml                          # Workspace config
+│       ├── CLAUDE.md                              # Workspace librarian governance rules
+│       ├── raw/{inbox,archive}/*.md               # Immutable source material (pending / archived)
+│       ├── wiki/                                  # Durable AI-maintained pages
+│       │   ├── {sources,entities,concepts,synthesis}/*.md
+│       │   ├── index.md                           # Maintained workspace index
+│       │   └── log.md                             # Workflow operation log
+│       └── outputs/*.md                           # Temporary answers and saved reports
+│
 external/data/
 └── exchange_rates.yaml                            # 150+ currency exchange rates
 ```
@@ -283,6 +315,7 @@ external/data/
 ### File Formats
 
 - **Tasks, finance records, subscriptions, knowledge notes** → Markdown files with YAML frontmatter
+- **LLM Wiki raw sources, durable pages, and outputs** → Markdown with YAML frontmatter (`related`, `source_refs` track page relationships)
 - **Workspace metadata, kanban ordering, budgets** → Pure YAML files
 - **Ledger records** → Yearly CSV files (`id,type,date,category_id,subcategory_id,currency,amount,note`)
 - **Exchange rates** → YAML map of currency codes to USD rates
@@ -305,8 +338,22 @@ second-brain/
 │   └── package.json
 │
 ├── memory/                    # All user data (plain text)
+│   └── llm-wiki/workspaces/<id>/
+│       ├── raw/               # Immutable source material
+│       │   ├── inbox/
+│       │   └── archive/
+│       ├── wiki/              # AI-maintained knowledge base
+│       │   ├── sources/
+│       │   ├── entities/
+│       │   ├── concepts/
+│       │   ├── synthesis/
+│       │   ├── index.md
+│       │   └── log.md
+│       ├── outputs/           # Temporary answers and reports
+│       └── CLAUDE.md          # Workspace librarian rules
 ├── external/data/             # Shared reference data
 ├── scripts/                   # Import/maintenance utilities
+│   └── llmwiki_workflow.mjs   # Claude-powered ingest/query/lint runner for LLM Wiki
 ├── .claude/skills/            # AI agent skill definitions
 ├── .github/copilot-instructions.md
 ├── start.sh                   # Dev startup script
@@ -315,22 +362,25 @@ second-brain/
 
 ## Routes
 
-| Path | Description |
-|------|-------------|
-| `/` | Home dashboard — greeting, weather, task stats, quick nav |
-| `/tasks` | Task workspace overview — aggregated stats, trends, upcoming |
-| `/tasks/:workspaceId` | Task workspace — calendar / kanban / list views |
-| `/assets` | Assets dashboard — net worth, allocation, monthly ledger overview |
-| `/assets/finance` | Finance earn workspace list |
-| `/assets/finance/:workspaceId` | Earn tracker — active/archived positions, yield calculations |
-| `/assets/holdings` | Holdings workspace list |
-| `/assets/holdings/:workspaceId` | Portfolio — dashboard, assets, snapshots tabs |
-| `/assets/ledger` | Ledger workspace list |
-| `/assets/ledger/:workspaceId` | Bookkeeping — dashboard, records, budgets tabs |
-| `/assets/subscriptions` | Subscription workspace list |
-| `/assets/subscriptions/:workspaceId` | Subscription management |
-| `/knowledge` | Knowledge workspace list |
-| `/knowledge/:workspaceId` | Knowledge workspace — notes, search, editor |
+| Path                                 | Description                                                       |
+| ------------------------------------ | ----------------------------------------------------------------- |
+| `/`                                  | Home dashboard — greeting, weather, task stats, quick nav         |
+| `/tasks`                             | Task workspace overview — aggregated stats, trends, upcoming      |
+| `/tasks/:workspaceId`                | Task workspace — calendar / kanban / list views                   |
+| `/assets`                            | Assets dashboard — net worth, allocation, monthly ledger overview |
+| `/assets/finance`                    | Finance earn workspace list                                       |
+| `/assets/finance/:workspaceId`       | Earn tracker — active/archived positions, yield calculations      |
+| `/assets/holdings`                   | Holdings workspace list                                           |
+| `/assets/holdings/:workspaceId`      | Portfolio — dashboard, assets, snapshots tabs                     |
+| `/assets/ledger`                     | Ledger workspace list                                             |
+| `/assets/ledger/:workspaceId`        | Bookkeeping — dashboard, records, budgets tabs                    |
+| `/assets/subscriptions`              | Subscription workspace list                                       |
+| `/assets/subscriptions/:workspaceId` | Subscription management                                           |
+| `/knowledge`                         | Knowledge workspace list                                          |
+| `/knowledge/:workspaceId`            | Knowledge workspace — notes, search, editor                       |
+| `/llmwiki`                           | LLM Wiki workspace list                                           |
+| `/llmwiki/:workspaceId`              | LLM Wiki workspace — raw / wiki / outputs panels                  |
+| `/llmwiki/:workspaceId/page`         | LLM Wiki durable page detail view                                 |
 
 ## License
 
