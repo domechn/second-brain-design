@@ -2,13 +2,11 @@
 
 # 🧠 Second Brain
 
-**An AI-native, file-system-backed personal management system.**
+**A local-first, file-system-backed personal management system.**
 
-All your tasks, finances, portfolios, ledgers, subscriptions, and knowledge — stored as plain text files you fully own and control.
+Manage tasks, assets, knowledge, meetings, and AI-tool usage from one self-hosted application.
 
-<!-- Add screenshot here: ![Second Brain Dashboard](assets/screenshot-dashboard.png) -->
-
-[Features](#features) · [Why Second Brain](#why-second-brain) · [Quick Start](#quick-start) · [AI Skills](#ai-skills) · [Tech Stack](#tech-stack)
+[Features](#features) · [Quick Start](#quick-start) · [Meetings and AI](#meetings-and-ai) · [Data Storage](#data-storage) · [Development](#development)
 
 </div>
 
@@ -16,380 +14,294 @@ All your tasks, finances, portfolios, ledgers, subscriptions, and knowledge — 
 
 ## What is Second Brain?
 
-Second Brain is a full-stack web application for personal life management. It covers **task management**, **finance/earn tracking**, **portfolio holdings**, **ledger bookkeeping**, **subscription tracking**, **knowledge management**, and an **LLM Wiki** for AI-curated research — all in a single, self-hosted app.
+Second Brain is a full-stack personal management application with a Chinese-language interface. It brings task management, yield tracking, portfolio holdings, ledger bookkeeping, receivables, subscriptions, knowledge management, meeting recording, and AI usage reviews into one self-hosted workspace.
 
-What makes it different? **There is no database.** Every piece of data is stored as human-readable plain text — YAML, Markdown with YAML frontmatter, and CSV — right in the repository under `memory/`. You can read your data with `cat`, edit it with `vim`, diff it with `git`, and back it up by pushing to a remote. Your data is never locked in an opaque system.
+The application has no business database. Core structured records live under `memory/` and use YAML, Markdown with YAML frontmatter, CSV, and JSON. You can inspect, edit, search, diff, and version these files directly instead of being locked into an opaque data store.
 
-This architecture also makes Second Brain uniquely suited for AI-assisted workflows. AI coding agents like **Claude Code** and **OpenAI Codex** can directly read and write the same plain-text files, enabling natural-language task creation, automated financial analysis, and zero-friction feature development on the existing codebase.
+Second Brain is also designed for AI-assisted workflows. Tools such as Claude Code, Codex, and Kiro can read the repository's data and skill definitions to create tasks, analyze finances, process meetings, and extend the application.
 
-> **Note:** The UI is in Chinese (中文). The codebase and documentation are in English.
+> Second Brain is local-first, not necessarily offline. Weather, market prices, batch speech recognition, Claude, and optional MCP connectors may access local or remote services depending on your configuration.
 
 ## Features
 
-### 📋 Task Management
+| Area | Current capabilities |
+| --- | --- |
+| **Home** | Time-based greeting, weather, daily quote, task statistics, reminders, and entry points to the main modules |
+| **Tasks** | Multiple workspaces; calendar, kanban, list, and AI review views; search and stage/date/tag/archive filters; task creation, editing, drag-and-drop, archiving, and deletion |
+| **Yield tracking** | Segment-aware returns based on principal, APR, dates, and currency; current, month-end, and maturity projections; active and archived positions |
+| **Portfolio holdings** | Crypto, US stocks, HK stocks, CN stocks, and cash; price history, asset allocation, portfolio snapshots, and CoinGecko prices |
+| **Ledger** | Income and expenses, nested categories, yearly CSV files, daily/monthly/quarterly/yearly budgets, multi-currency reporting, and Feidee import tooling |
+| **Receivables** | Personal and customer receivables, partial collections, aging, write-offs, and inclusion in asset totals |
+| **Subscriptions** | Monthly, yearly, quarterly, semi-annual, weekly, and custom billing cycles; trials, pauses, cancellations, renewal dates, and reminders |
+| **Knowledge** | Quick notes and Markdown notes, HTML file/folder import, full-text search, tags, bidirectional links, attachments, Mermaid, article/slide presentation modes, and presenter outlines |
+| **Meetings** | Multiple workspaces, dual-track system/microphone recording, pause/mute, live captions, recording-time AI digests, batch transcription, speaker diarization and correction, meeting minutes, and knowledge export |
+| **AI review** | Collect local Claude Code, Codex, Kiro, and AWS Quick logs for a date range, display cross-tool metrics, and generate review documents per task workspace; optionally read chat/mail MCP connectors |
+| **Global UI** | Light/dark themes, a collapsible resizable sidebar, responsive layouts, and a `Cmd+K` / `Ctrl+K` command palette with AI chat |
 
-Multi-workspace task system with three powerful views:
+### Command palette
 
-- **Calendar View** — Month grid with date-range visualization; tasks plotted by due date or start date; color mode toggle (by stage or by project)
-- **Kanban View** — Configurable columns with drag-and-drop; batch archive completed tasks
-- **List View** — Sortable rows with full metadata; keyboard navigation support
+Press `Cmd+K` on macOS or `Ctrl+K` on other platforms to:
 
-**Additional capabilities:**
+- Search and navigate to pages or workspaces
+- Quickly create tasks, ledger records, subscriptions, receivables, yield records, and knowledge notes
+- Record a manual holding price
+- Toggle the theme and sidebar
+- Enter AI chat when no command matches
 
-- Advanced filtering: full-text search, stage filter, date range, multi-tag filter, archive toggle — all synced to URL params for bookmarking
-- Configurable workspaces with custom kanban stages, projects, priorities, and tags
-- Auto-emoji title decoration on new tasks
-- Auto-set `start_date` when moving to "in progress"
-- Task detail side sheet with Markdown editing
-- Dashboard with aggregated stats: active tasks, in-progress count, overdue count, 8-week completion trend, upcoming tasks
+## Data ownership
 
-### 💰 Finance Earn Tracking
+Core business data is persisted through the file system, with no ORM or business database:
 
-Track fixed-income and yield-bearing positions:
+- **Markdown + YAML frontmatter**: tasks, yield records, holdings, receivables, subscriptions, knowledge notes, and review documents
+- **YAML**: workspace, kanban, budget, and other metadata
+- **CSV**: ledger records
+- **JSON**: meeting captions, transcript segments, and other structured artifacts
+- **HTML and attachments**: knowledge documents, images, and other assets
 
-- APR-based return calculation with segmented history (investment amount and rate can change over time)
-- Linear yield formula: `amount × (APR / 100) × (days / 365)`, accumulated across segments
-- Calculate current return, month-end projected return, or maturity return
-- Active / archived position lifecycle
-- Multi-currency support (USD, CNY, HKD) with automatic conversion
-- 7-day expiration warnings
+There are important boundaries:
 
-### 📊 Portfolio Holdings
-
-Full portfolio tracker with dashboard analytics:
-
-- Multi-asset types: crypto, US stocks, HK stocks, CN stocks (A股), cash
-- Price history tracking per asset with CoinGecko integration (pre-mapped symbols for 16+ major tokens)
-- Point-in-time portfolio snapshots recording all holdings, prices, exchange rates, and total value
-- Net worth calculation and trend analysis across snapshots
-- Asset allocation breakdown with color-coded charts
-- Automatic currency inference by asset type (HKD for HK stocks, CNY for CN stocks, USD default)
-
-### 📖 Ledger Bookkeeping
-
-Income and expense tracking with budget management:
-
-- Multi-level category system with nested subcategories (e.g., 饮食 → 咖啡, 餐饮, 零食)
-- Budget management with daily / monthly / quarterly / yearly periods
-- Budget usage tracking with period-aware aggregation
-- Multi-year records stored as yearly CSV files
-- CSV import pipeline from Feidee (随手记) with automatic category mapping
-- Monthly overview dashboard with income/expense totals, category breakdown, and net calculation
-- Multi-currency: USD, CNY, HKD, EUR, JPY, GBP
-
-### 🔄 Subscription Tracking
-
-Manage recurring expenses with billing intelligence:
-
-- Flexible billing cycles: monthly, yearly, quarterly, semi-annual, weekly, or custom (value + unit)
-- Subscription lifecycle: active → paused → canceled, with cancel date and service end date
-- Trial period detection and tracking
-- Auto-calculated next billing date from first billing date + cycle
-- Monthly and yearly cost annualization
-- Days-until-billing countdown
-- Upcoming subscription alerts (30-day window on the assets dashboard)
-
-### 📚 Knowledge Management
-
-A personal wiki with bidirectional linking:
-
-- Markdown notes with YAML frontmatter metadata (title, tags, timestamps, type)
-- Two note types: quick notes (速记) for brief entries, full notes (笔记) for long-form documents
-- **Bidirectional linking**: outgoing links, backlinks, and related notes — auto-discovered across the workspace
-- **CodeMirror 6 editor** with syntax highlighting, bracket matching, search, line numbers, and direct image paste/upload
-- **Mermaid diagram rendering** in code blocks (theme-aware: light/dark)
-- Full-text search across title, content, and tags with match highlighting and excerpts
-- Workspace-specific tag system with custom display labels
-- Note insights: auto-extracted headings (with anchor IDs), linked notes, and referenced assets
-- Asset management: images and files stored alongside notes
-
-### 🧠 LLM Wiki
-
-A separate AI librarian workflow for durable research and synthesis:
-
-- Workspace-scoped `raw/` → `wiki/` → `outputs/` flow with `raw/inbox`, `raw/archive`, `wiki/sources`, `wiki/entities`, `wiki/concepts`, and `wiki/synthesis`
-- New LLM Wiki workspaces inherit their baseline `CLAUDE.md` governance rules from `memory/llm-wiki/workspaces/ai-workflows/CLAUDE.md`
-- Durable pages connect through `related` and `source_refs` frontmatter; when body text needs navigation, use standard relative Markdown file links like `[Topic](../concepts/topic.md)` instead of `[[Topic]]`
-- Saved outputs for temporary answers and reports that should not enter the long-term wiki
-- Dedicated UI separate from the knowledge note system: workspace list, workspace dashboard with raw / wiki / outputs panels, and a durable page detail view
-- Each workspace maintains an auto-updated `wiki/index.md` (navigation) and `wiki/log.md` (workflow operation log)
-- Companion `scripts/llmwiki_workflow.mjs` runner + `.claude/skills/llmwiki-workflow` skill expose `/llmwiki-ingest`, `/llmwiki-query`, and `/llmwiki-lint` slash commands for Claude Code
-
-### 🏠 Home Dashboard
-
-A personal command center:
-
-- Time-based greeting (早上好 / 下午好 / 晚上好) with date display
-- Weather widget via Open-Meteo API with geolocation, temperature, and Chinese weather descriptions
-- Curated quote of the day from a collection of 30+ literary quotes
-- Task statistics: total active, in-progress, overdue, workspace count
-- Quick navigation cards to all major sections
-
-### 🎨 UI / UX
-
-- **Dark / Light theme** with smooth 300ms transitions, persisted in localStorage, no flash on load
-- **Collapsible resizable sidebar** (drag-to-resize, icon-only collapse mode, persistent state)
-- Full SSR with client hydration — fast initial load
-- **150+ currency exchange rates** built-in for cross-module conversion
-
-## Why Second Brain
-
-### 🗂️ 100% Local File Storage — You Own Your Data
-
-All data is stored as **plain text files** — YAML for metadata, Markdown with YAML frontmatter for records, CSV for ledger entries. No database, no cloud dependency, no vendor lock-in.
-
-- **Read with any tool**: `cat`, `grep`, `vim`, VS Code — your data is always accessible
-- **Version control with Git**: every change is tracked, diffable, and reversible
-- **Back up anywhere**: push to GitHub, copy to a USB drive, sync with rsync
-- **Portable**: move your entire life system by copying a folder
-
-### 🤖 AI-Native Architecture — Built for AI Agents
-
-Second Brain comes with **pre-built AI skills** designed for Claude Code, Codex, and other AI coding agents:
-
-| Skill                  | What It Does                                                                                |
-| ---------------------- | ------------------------------------------------------------------------------------------- |
-| **Task Creation**      | Describe a task in natural language → auto-classified stage, priority, projects, and tags   |
-| **Weekly Summary**     | Generate a summary of the 3 most impactful completed tasks in any date range                |
-| **Finance Yield**      | Calculate current, month-end, or maturity returns for investment positions                  |
-| **Ledger Import**      | Automated Feidee export → XLSX parse → CSV import with category completion                  |
-| **Workspace Creation** | Create a new task workspace from a description with all required YAML files                 |
-| **LLM Wiki Workflow**  | Run the AI librarian workflow across raw sources, durable wiki pages, and temporary outputs |
-
-Because the data layer is plain text, AI agents read and write the same files as the web app. No API wrappers, no ORM mappings, no intermediate layers. The AI operates directly on your data with full context.
-
-### 🔧 Zero-Friction Customization — Let AI Build Your Features
-
-This is the killer advantage. Want a new feature? **Just describe it in natural language and let an AI agent implement it.**
-
-The architecture is deliberately simple:
-
-- **React Router loaders/actions** for request handling
-- **File-system reads/writes** for persistence
-- **No complex abstractions** — straightforward TypeScript you (or an AI) can read in minutes
-
-The flat, readable codebase makes AI-assisted development trivially easy. An AI agent can:
-
-- Understand the full data model by reading a few YAML/Markdown files
-- Add new routes, components, or data modules following established patterns
-- Modify any feature with full confidence because there's no hidden state
-
-You're not locked into a rigid product roadmap. Your personal management system evolves with your needs, and AI does the heavy lifting.
-
-### 🔓 Full Data Transparency
-
-- Every record is **human-readable** — no opaque database blobs
-- `git diff` shows **exactly** what changed and when
-- Perfect for **auditing**: review any financial record, task history, or note revision
-- No data migrations — add a new YAML field and it just works
+- Raw meeting chunks and merged WebM/WAV audio live under `memory/meetings/` but are ignored by Git.
+- `.local/` stores machine-specific state such as ASR configuration, encryption keys, downloaded models, connectors, and the meeting trash; it is also ignored by Git.
+- A normal Git sync therefore backs up tracked structured records, but **not** raw recordings, downloaded models, or `.local/` configuration. Back those up separately if needed.
 
 ## Quick Start
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) (package manager and runtime)
+The base web application requires:
+
+- [Git](https://git-scm.com/)
+- [Bun](https://bun.sh/)
+
+Meeting transcription additionally requires `ffmpeg` and `ffprobe`. On macOS:
 
 ```bash
-# Install Bun if you don't have it
-curl -fsSL https://bun.sh/install | bash
+brew install ffmpeg
 ```
 
-### Install & Run
+### Install
 
 ```bash
-# Clone the repository
-git clone https://github.com/user/second-brain.git
+git clone https://github.com/domechn/second-brain.git
 cd second-brain
 
-# Install dependencies
+# Repository-level tooling dependencies
 bun install
-cd system && bun install
 
-# Start the development server
+# Web application dependencies
+cd system
+bun install
+```
+
+### Development mode
+
+From `system/`:
+
+```bash
 bun run dev --host
 ```
 
-Open **http://localhost:5173** — you're in.
+Then open <http://localhost:5173>.
 
-### Other Commands
+### Production build and server
+
+From `system/`:
 
 ```bash
-# From the system/ directory:
-bun run dev --host      # Development server with hot reload
-bun run build           # Production build
-bun run start           # Serve production build
-bun run typecheck       # TypeScript type checking
-
-# From the repository root:
-./start.sh              # Convenience: git pull + start dev server
-./sync.sh "message"     # Compress images + git commit + push
+bun run build
+bun run start
 ```
 
-## Documentation Maintenance
+On macOS, you can also use the convenience script from the repository root:
 
-When a feature, workflow, or data contract changes, update the relevant `README.md` files and any affected directory-level `CLAUDE.md` guidance in the same change so the docs stay aligned with the code.
+```bash
+./start.sh
+```
+
+`start.sh` runs `git pull` first, installs missing `system/` dependencies, rebuilds when needed, starts the production server on `PORT` (default `5173`), and opens the browser. Use the manual commands above if startup should not update the repository.
+
+## Desktop app (optional)
+
+`desktop/` is a macOS Electron shell whose main purpose is capturing system audio for meeting recording through CoreAudio loopback. A normal browser can capture audio from a selected tab, but it cannot provide the same system-wide audio capture experience.
+
+The desktop shell still requires the local repository, its `memory/` directory, and Bun. It is not a standalone data application. On first launch it locates the repository, checking `~/github/second-brain` by default and otherwise presenting a folder picker.
+
+```bash
+cd desktop
+bun install
+
+# Run the Electron shell in development
+bun run start
+
+# Package Second Brain.app
+bun run package
+```
+
+System-audio loopback is intended for macOS 14.2 or newer and requires the relevant microphone/audio permissions. The shell reuses an existing web server on its configured port or installs dependencies, builds, and starts one when necessary. It deliberately does not manage a speech-recognition model.
+
+See [`desktop/README.md`](desktop/README.md) for installation, signing, permissions, and environment-variable details.
+
+## Meetings and AI
+
+These capabilities are configured on demand and are not required for the core task, asset, or knowledge features.
+
+### Batch speech recognition
+
+Final meeting transcripts use a user-configured OpenAI-compatible ASR service. The default configuration points to a local Ollama instance:
+
+- Base URL: `http://127.0.0.1:11434/v1`
+- Model: `gemma-4`
+
+The service must support audio input. Its URL, model, and API key can be changed from the ASR settings in the meetings UI. The Electron shell does not start or manage this service.
+
+### Live captions and speaker diarization
+
+- Live captions use a local sherpa-onnx streaming Chinese/English model.
+- Optional speaker diarization uses pyannote segmentation and ERes2Net speaker embeddings.
+- Both can be installed on demand from the meetings overview. Models are stored under the Git-ignored `.local/` directory.
+- Recording continues if either feature is unavailable, and final transcription does not depend on live captions.
+
+### Claude-powered features
+
+The following features use the Claude Agent SDK:
+
+- Immediate and periodic AI digests during recording
+- Post-transcription speaker profiles and meeting minutes
+- AI usage review generation
+- Command-palette AI chat
+
+Installing and signing in to the local `claude` CLI is recommended so the application can reuse its authentication. Chat and mail context is optional: paste a read-only MCP configuration into `/settings/connectors`. The configuration is stored in `.local/mcp.json`.
+
+## Main pages
+
+| Path | Page |
+| --- | --- |
+| `/` | Home dashboard |
+| `/tasks` | Task workspace overview |
+| `/tasks/:workspaceId` | Calendar, kanban, list, and review views |
+| `/assets` | Asset overview |
+| `/assets/finance/:workspaceId` | Yield tracking |
+| `/assets/holdings/:workspaceId` | Holdings and snapshots |
+| `/assets/ledger/:workspaceId` | Ledger and budgets |
+| `/assets/receivables/:workspaceId` | Receivables and collections |
+| `/assets/subscriptions/:workspaceId` | Subscription management |
+| `/knowledge/:workspaceId` | Knowledge documents, search, and editing |
+| `/knowledge/:workspaceId/present` | Presenter console or audience view |
+| `/meetings` | Meeting workspaces and local engine status |
+| `/meetings/:workspaceId/:meetingId` | Recording, transcription, review, minutes, and export |
+| `/review` | AI usage metrics, collection, and review generation |
+| `/settings/connectors` | Chat/mail MCP connector settings |
+
+## Data Storage
+
+```text
+memory/
+├── task-management/
+│   └── workspaces/<id>/
+│       ├── metadata.yaml
+│       ├── tasks/YYYY/MM/DD/task_<ts>.md
+│       └── reviews/<period>.md
+├── finance/
+│   ├── earn/<id>/YYYY/MM/DD/finance_<ts>.md
+│   ├── holdings/<id>/{assets,snapshots}/
+│   ├── ledger/<id>/{metadata.yaml,budgets.yaml,records/*.csv}
+│   ├── receivables/<id>/YYYY/MM/DD/receivable_<ts>.md
+│   └── subscriptions/<id>/YYYY/MM/DD/sub_<ts>.md
+├── knowledge/
+│   └── workspaces/<id>/
+│       ├── metadata.yaml
+│       ├── documents.yaml
+│       ├── notes/
+│       ├── quick/
+│       ├── presenter-notes/
+│       └── assets/
+├── meetings/
+│   └── workspaces/<id>/meetings/<meeting-id>/
+│       ├── meta.yaml
+│       ├── chunks/                  # Git-ignored
+│       ├── audio/                   # Git-ignored
+│       ├── live/captions.json
+│       ├── transcript/segments.json
+│       └── summary.md
+└── ai-usage/
+    ├── config.yaml
+    └── snapshots/<YYYY-MM>--<host>.md
+
+external/data/
+└── exchange_rates.yaml
+
+.local/                              # Machine-local config, keys, models, and trash; Git-ignored
+```
 
 ## AI Skills
 
-Second Brain ships with pre-built skills for AI coding agents (Claude Code, Codex, etc.). These skills are defined in `.claude/skills/` and operate directly on the file system.
+The repository includes reusable Agent Skills under `.agents/skills/`. Agents follow the data formats and workflows in these definitions and operate on the same files as the web application.
 
-| Skill                      | Description                                                                                         | Example                                                        |
-| -------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| **task-management-create** | Create a task from natural language with auto-classification of stage, priority, projects, and tags | _"Track the Twitter API migration, high priority, due Friday"_ |
-| **weekly-summary**         | Generate a weekly summary of the top 3 completed tasks with impact analysis                         | _"Summarize last week's work"_                                 |
-| **finance-yield**          | Calculate returns for finance earn positions (current / month-end / maturity)                       | _"How much has the USDT position earned?"_                     |
-| **ledger-import**          | Import transactions from Feidee (随手记) with automatic category and subcategory mapping            | Automates browser export → parse → import                      |
-| **create-workspace**       | Create a new task workspace with kanban stages, projects, tags, and register in global index        | _"Create a workspace for my side project"_                     |
-| **llmwiki-workflow**       | Run the AI librarian workflow for LLM Wiki workspaces across raw/, wiki/, and outputs/              | _"Ingest the pending raw sources in workspace default"_        |
+| Skill | Purpose |
+| --- | --- |
+| `create-workspace` | Create and register a task workspace |
+| `task-management` | Create and classify tasks from natural language |
+| `weekly-summary` | Summarize important completed work for a date range |
+| `finance-analysis` | Analyze asset and finance data |
+| `finance-yield` | Calculate returns for yield positions |
+| `ledger-import` | Export, parse, and import Feidee ledger data |
+| `meeting-minutes` | Process meeting transcripts and minutes |
+| `creating-knowledge-presentations` | Create or revise knowledge-base HTML presentations |
+| `youtube-summarizer` | Turn YouTube content into knowledge material |
 
-### How It Works
+## Development
 
-The AI agent reads the skill definition (which describes the data format, file paths, and classification rules), then reads/writes the same plain-text files that the web app uses. No special API needed — the file system **is** the API.
+### Common commands
 
-## Tech Stack
+Run these commands from `system/`:
 
-| Layer         | Technology                                                 |
-| ------------- | ---------------------------------------------------------- |
-| **Framework** | React 19 + React Router 7 (SSR)                            |
-| **Build**     | Vite 7 + TypeScript 5.9 (strict)                           |
-| **Styling**   | Tailwind CSS 4 + shadcn/ui (Radix primitives)              |
-| **Editor**    | CodeMirror 6 (Markdown) + Mermaid 11 (diagrams)            |
-| **Charts**    | Recharts 3.7                                               |
-| **Data**      | js-yaml + gray-matter (YAML/frontmatter) + PapaParse (CSV) |
-| **Icons**     | Lucide React                                               |
-| **Runtime**   | Bun (dev + package manager) / Node.js (production)         |
-
-## Data Architecture
-
-All data lives under `memory/` as plain text:
-
-```
-memory/
-├── task-management/
-│   └── workspaces/
-│       ├── metadata.yaml                          # Workspace index
-│       └── <workspace-id>/
-│           ├── metadata.yaml                      # Kanban stages, projects, priorities, tags
-│           └── tasks/
-│               ├── metadata.yaml                  # Kanban ordering
-│               ├── archived.yaml                  # Archived task paths
-│               └── YYYY/MM/DD/task_<ts>.md        # Task (YAML frontmatter + Markdown body)
-│
-├── finance/
-│   ├── earn/<id>/
-│   │   └── YYYY/MM/DD/finance_<ts>.md             # Earn positions (APR, amount, currency, history)
-│   │
-│   ├── holdings/<id>/
-│   │   ├── assets/<name>.md                       # Assets (symbol, type, quantity, cost, price history)
-│   │   └── snapshots/YYYY/MM/DD/snapshot_<ts>.md  # Portfolio snapshots
-│   │
-│   ├── ledger/<id>/
-│   │   ├── metadata.yaml                          # Categories and subcategories
-│   │   ├── budgets.yaml                           # Budget rules (category, period, amount)
-│   │   └── records/YYYY.csv                       # Yearly transaction records
-│   │
-│   └── subscriptions/<id>/
-│       └── YYYY/MM/DD/sub_<ts>.md                 # Subscriptions (billing cycle, status, trial)
-│
-├── knowledge/
-│   └── workspaces/<id>/
-│       ├── metadata.yaml                          # Workspace config and tags
-│       ├── notes/**/*.md                          # Markdown notes with frontmatter
-│       └── assets/**                              # Images and files
-│
-├── llm-wiki/
-│   └── workspaces/<id>/
-│       ├── metadata.yaml                          # Workspace config
-│       ├── CLAUDE.md                              # Workspace librarian governance rules
-│       ├── raw/{inbox,archive}/*.md               # Immutable source material (pending / archived)
-│       ├── wiki/                                  # Durable AI-maintained pages
-│       │   ├── {sources,entities,concepts,synthesis}/*.md
-│       │   ├── index.md                           # Maintained workspace index
-│       │   └── log.md                             # Workflow operation log
-│       └── outputs/*.md                           # Temporary answers and saved reports
-│
-external/data/
-└── exchange_rates.yaml                            # 150+ currency exchange rates
+```bash
+bun run dev --host    # Development server
+bun run typecheck     # React Router type generation + TypeScript checks
+bun run build         # Production build
+bun run start         # Serve the production build
+bun run test:unit     # Vitest unit tests
+bun run test:e2e      # Playwright end-to-end tests
+bun run test          # Unit + end-to-end tests
 ```
 
-### File Formats
+### Project structure
 
-- **Tasks, finance records, subscriptions, knowledge notes** → Markdown files with YAML frontmatter
-- **LLM Wiki raw sources, durable pages, and outputs** → Markdown with YAML frontmatter (`related`, `source_refs` track page relationships)
-- **Workspace metadata, kanban ordering, budgets** → Pure YAML files
-- **Ledger records** → Yearly CSV files (`id,type,date,category_id,subcategory_id,currency,amount,note`)
-- **Exchange rates** → YAML map of currency codes to USD rates
-
-## Project Structure
-
-```
+```text
 second-brain/
-├── system/                    # React Router web application
-│   ├── app/
-│   │   ├── routes/            # Page routes (loaders + actions + UI)
-│   │   ├── components/        # UI components (shadcn/ui + custom)
-│   │   │   ├── ui/            # shadcn/ui primitives
-│   │   │   └── task/          # Task-specific components
-│   │   └── lib/               # Domain logic
-│   │       ├── *-types.ts     # TypeScript type definitions
-│   │       ├── *-data.server.ts  # Server-only file I/O (loaders/actions)
-│   │       └── *-helpers.ts   # Display logic, calculations, constants
-│   ├── public/                # Static assets
-│   └── package.json
-│
-├── memory/                    # All user data (plain text)
-│   └── llm-wiki/workspaces/<id>/
-│       ├── raw/               # Immutable source material
-│       │   ├── inbox/
-│       │   └── archive/
-│       ├── wiki/              # AI-maintained knowledge base
-│       │   ├── sources/
-│       │   ├── entities/
-│       │   ├── concepts/
-│       │   ├── synthesis/
-│       │   ├── index.md
-│       │   └── log.md
-│       ├── outputs/           # Temporary answers and reports
-│       └── CLAUDE.md          # Workspace librarian rules
-├── external/data/             # Shared reference data
-├── scripts/                   # Import/maintenance utilities
-│   └── llmwiki_workflow.mjs   # Claude-powered ingest/query/lint runner for LLM Wiki
-├── .claude/skills/            # AI agent skill definitions
-├── .github/copilot-instructions.md
-├── start.sh                   # Dev startup script
-└── sync.sh                    # Image compression + git sync
+├── system/                 # React Router 7 full-stack web application
+│   └── app/
+│       ├── routes/         # Pages, loaders, actions, and resource routes
+│       ├── components/     # Shared and domain UI components
+│       └── lib/            # Data access, types, and domain logic
+├── desktop/                # macOS Electron shell
+├── memory/                 # User business data
+├── external/data/          # Shared reference data
+├── scripts/                # Import and maintenance utilities
+├── .agents/skills/         # Agent Skills
+├── .local/                 # Machine-local state (Git-ignored)
+└── start.sh                # Pull, build when needed, and start production
 ```
 
-## Routes
+### Tech stack
 
-| Path                                 | Description                                                       |
-| ------------------------------------ | ----------------------------------------------------------------- |
-| `/`                                  | Home dashboard — greeting, weather, task stats, quick nav         |
-| `/tasks`                             | Task workspace overview — aggregated stats, trends, upcoming      |
-| `/tasks/:workspaceId`                | Task workspace — calendar / kanban / list views                   |
-| `/assets`                            | Assets dashboard — net worth, allocation, monthly ledger overview |
-| `/assets/finance`                    | Finance earn workspace list                                       |
-| `/assets/finance/:workspaceId`       | Earn tracker — active/archived positions, yield calculations      |
-| `/assets/holdings`                   | Holdings workspace list                                           |
-| `/assets/holdings/:workspaceId`      | Portfolio — dashboard, assets, snapshots tabs                     |
-| `/assets/ledger`                     | Ledger workspace list                                             |
-| `/assets/ledger/:workspaceId`        | Bookkeeping — dashboard, records, budgets tabs                    |
-| `/assets/subscriptions`              | Subscription workspace list                                       |
-| `/assets/subscriptions/:workspaceId` | Subscription management                                           |
-| `/knowledge`                         | Knowledge workspace list                                          |
-| `/knowledge/:workspaceId`            | Knowledge workspace — notes, search, editor                       |
-| `/llmwiki`                           | LLM Wiki workspace list                                           |
-| `/llmwiki/:workspaceId`              | LLM Wiki workspace — raw / wiki / outputs panels                  |
-| `/llmwiki/:workspaceId/page`         | LLM Wiki durable page detail view                                 |
+| Layer | Technology |
+| --- | --- |
+| Web | React 19, React Router 7 (SSR) |
+| Build | Vite 7, TypeScript 5.9, Bun |
+| UI | Tailwind CSS 4, Radix UI, Lucide React |
+| Editing and rendering | CodeMirror 6, Marked, Mermaid 11, sanitize-html |
+| Charts | Recharts 3 |
+| Data | js-yaml, gray-matter, PapaParse, file-system storage |
+| Testing | Vitest, Testing Library, Playwright |
+| Desktop | Electron |
 
-## License
-
-This project is for personal use. License TBD.
+When a feature, workflow, or data contract changes, update the relevant README files and `AGENTS.md` guidance in the same change so the documentation stays aligned with the implementation.
 
 ---
 
 <div align="center">
 
-**Built with plain text. Powered by AI. Owned by you.**
+**Your data, your workflows, your system.**
 
 </div>
